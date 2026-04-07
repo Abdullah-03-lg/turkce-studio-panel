@@ -240,7 +240,7 @@ function bWorksheets(){
       '</div>';
     // Sorular (gizli başlar)
     if(qs.length){
-      h+='<div id="ws-body-'+i+'" style="display:none;margin-top:16px;border-top:1px solid #f0f4f5;padding-top:16px">';
+      h+='<div id="ws-body-'+i+'" onclick="event.stopPropagation()" style="display:none;margin-top:16px;border-top:1px solid #f0f4f5;padding-top:16px">';
       qs.forEach(function(q,qi){
         h+='<div style="margin-bottom:14px;padding:12px 14px;background:#f8fafb;border-radius:10px;border:1px solid #eef1f3">';
         h+='<div style="display:flex;justify-content:space-between;margin-bottom:6px">';
