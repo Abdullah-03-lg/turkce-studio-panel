@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Türkçe Studio — Öğrenci Paneli</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f7f8;color:#2d3e50;min-height:100vh}
+.card{background:white;border-radius:14px;border:1px solid #e4ecee;padding:18px 20px;margin-bottom:14px}
+.tab{padding:12px 16px;font-size:13px;font-weight:500;color:rgba(255,255,255,.4);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.on{color:#3BB3BD;border-bottom-color:#3BB3BD}
+.sec{display:none}.sec.show{display:block}
+</style>
+</head>
+<body>
+<div id="login" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#f4f7f8,#eaf3f4)">
+  <div style="background:white;border-radius:20px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 12px 48px rgba(59,179,189,.12);text-align:center">
+    <div id="l-av" style="width:72px;height:72px;border-radius:50%;background:#E1F5EE;color:#085041;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto 16px">T</div>
+    <div id="l-name" style="font-size:24px;font-weight:700;color:#121118;margin-bottom:4px">Türkçe Studio</div>
+    <div style="font-size:13px;color:#7a9199;margin-bottom:28px">Kişisel Öğrenci Paneli</div>
+    <input id="pwd" type="password" placeholder="Şifreni gir" onkeydown="if(event.key==='Enter')doLogin()" style="width:100%;padding:14px;border:2px solid #dde8ea;border-radius:12px;font-size:18px;text-align:center;letter-spacing:4px;outline:none">
+    <button onclick="doLogin()" style="width:100%;margin-top:14px;padding:14px;border-radius:12px;background:#3BB3BD;color:white;border:none;font-size:15px;font-weight:600;cursor:pointer">Giriş Yap</button>
+    <div id="l-err" style="color:#dc2626;font-size:12px;margin-top:8px;min-height:16px"></div>
+    <div style="margin-top:20px;font-size:11px;color:#b0c4c8">Türkçe Studio · Öğretmen Platformu</div>
+  </div>
+</div>
+<div id="app" style="display:none">
+  <div style="background:#1a2535;position:sticky;top:0;z-index:100">
+    <div style="padding:14px 20px;display:flex;align-items:center;gap:12px">
+      <div id="a-av" style="width:38px;height:38px;border-radius:50%;background:#E1F5EE;color:#085041;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0">T</div>
+      <div style="flex:1">
+        <div id="a-name" style="font-size:16px;font-weight:700;color:white"></div>
+        <div id="a-meta" style="font-size:11px;color:rgba(255,255,255,.45)"></div>
+      </div>
+      <span id="a-badge" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:#E1F5EE;color:#085041"></span>
+    </div>
+    <div style="background:#232f42;display:flex;overflow-x:auto;padding:0 16px">
+      <button class="tab on" onclick="sw('speaking',this)">💬 Konuşma Dersleri</button>
+      <button class="tab" onclick="sw('curriculum',this)">📍 Müfredat</button>
+      <button class="tab" onclick="sw('worksheets',this)">📚 Ödevler</button>
+      <button class="tab" onclick="sw('sessions',this)">📅 Tüm Dersler</button>
+    </div>
+  </div>
+  <div style="max-width:720px;margin:0 auto;padding:20px 16px 40px">
+    <div id="tn" style="display:none;background:#eaf3f4;border:1px solid #c8e8eb;border-radius:12px;padding:16px 18px;margin-bottom:20px">
+      <div style="display:flex;gap:12px">
+        <div style="font-size:22px;flex-shrink:0">💬</div>
+        <div><div style="font-size:10px;font-weight:700;color:#2a8a94;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Öğretmenden</div>
+        <div id="tn-text" style="font-size:14px;color:#2d3e50;line-height:1.7"></div></div>
+      </div>
+    </div>
+    <div id="speaking" class="sec show"></div>
+    <div id="curriculum" class="sec"></div>
+    <div id="worksheets" class="sec"></div>
+    <div id="sessions" class="sec"></div>
+    <div id="gen-at" style="font-size:11px;color:#b0c4c8;text-align:center;margin-top:20px"></div>
+  </div>
+</div>
+<script>
+var D=null;
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):''}
+(function(){
+  var hash=window.location.hash.slice(1);
+  var m=hash.match(/data=([^&]+)/);
+  var raw=m?m[1]:null;
+  if(!raw){var p=new URLSearchParams(window.location.search);raw=p.get('data');}
+  if(!raw)return;
+  try{
+    D=JSON.parse(decodeURIComponent(escape(atob(raw))));
+    var C=['#E1F5EE:#085041','#E6F1FB:#0C447C','#FAEEDA:#633806','#FBEAF0:#72243E'];
+    var p=C[D.name.charCodeAt(0)%C.length].split(':');
+    var av=document.getElementById('l-av');
+    av.style.background=p[0];av.style.color=p[1];
+    av.textContent=D.name.charAt(0).toUpperCase();
+    document.getElementById('l-name').textContent=D.name;
+    document.title=D.name+' — Türkçe Studio';
+  }catch(e){document.getElementById('l-name').textContent='Bozuk Link';}
+})();
+function doLogin(){
+  if(!D){document.getElementById('l-err').textContent='Geçersiz link.';return;}
+  var v=document.getElementById('pwd').value.trim();
+  if(v.toLowerCase()===D.password.toLowerCase()){
+    document.getElementById('login').style.display='none';
+    buildApp();
+    document.getElementById('app').style.display='block';
+  }else{document.getElementById('l-err').textContent='Şifre yanlış, tekrar dene.';}
+}
+function sw(id,btn){
+  document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('show');});
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('on');});
+  document.getElementById(id).classList.add('show');
+  btn.classList.add('on');
+}
+function tC(id){
+  var b=document.getElementById('cb-'+id);
+  var a=document.getElementById('arr-'+id);
+  if(!b)return;
+  var open=b.style.display!=='none';
+  b.style.display=open?'none':'block';
+  if(a)a.style.transform=open?'rotate(-90deg)':'rotate(0deg)';
+}
+function buildApp(){
+  var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
+  var C=['#E1F5EE:#085041','#E6F1FB:#0C447C','#FAEEDA:#633806','#FBEAF0:#72243E'];
+  var p=C[D.name.charCodeAt(0)%C.length].split(':');
+  var av=document.getElementById('a-av');
+  av.style.background=p[0];av.style.color=p[1];av.textContent=D.name.charAt(0).toUpperCase();
+  document.getElementById('a-name').textContent=D.name;
+  document.getElementById('a-meta').textContent=(D.startDate?'Başlangıç: '+D.startDate+' · ':'')+D.doneTopics.length+' konu tamamlandı';
+  var lc=LVL[D.level]||{bg:'#f4f7f8',c:'#5a7a80'};
+  var badge=document.getElementById('a-badge');
+  badge.textContent=D.level;badge.style.background=lc.bg;badge.style.color=lc.c;
+  if(D.teacherNote){var tn=document.getElementById('tn');tn.style.display='block';document.getElementById('tn-text').textContent=D.teacherNote;}
+  document.getElementById('speaking').innerHTML=bSpeaking();
+  document.getElementById('curriculum').innerHTML=bCurriculum();
+  document.getElementById('worksheets').innerHTML=bWorksheets();
+  document.getElementById('sessions').innerHTML=bSessions();
+  document.getElementById('gen-at').textContent='Son güncelleme: '+(D.generatedAt||'');
+}
+function bSpeaking(){
+  var ses=D.speakingSessions||[];
+  var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
+  var TB={card:'#E1F5EE',scenario:'#FAEEDA',debate:'#E6F1FB',image:'#FBEAF0'};
+  var CH=[{bg:'#E1F5EE',c:'#085041',b:'#9FE1CB'},{bg:'#E6F1FB',c:'#0C447C',b:'#B5D4F4'},{bg:'#FAEEDA',c:'#412402',b:'#FAC775'},{bg:'#FBEAF0',c:'#4B1528',b:'#F4C0D1'},{bg:'#EAF3DE',c:'#173404',b:'#C0DD97'},{bg:'#EEEDFE',c:'#26215C',b:'#CECBF6'}];
+  var h='<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px"><span style="font-size:20px">💬</span><span style="font-size:16px;font-weight:700;color:#1a2535">Konuşma Dersleri</span><span style="font-size:12px;color:#7a9199;background:#f4f7f8;padding:2px 8px;border-radius:10px">'+ses.length+' ders</span></div>';
+  if(!ses.length)return h+'<div style="text-align:center;padding:28px;background:white;border-radius:14px;color:#9ab0b5"><div style="font-size:32px;opacity:.3;margin-bottom:8px">💬</div><div>Henüz konuşma dersi yok</div></div>';
+  ses.forEach(function(s,idx){
+    var lc=LVL[s.cardLevel]||{bg:'#f4f7f8',c:'#5a7a80'};
+    var cd=s.cardData||{};
+    var tb=TB[cd.type]||'#E1F5EE';
+    var cid='c'+idx;
+    var dots=[1,2,3,4,5].map(function(i){return '<div style="width:7px;height:7px;border-radius:50%;background:'+(i<=s.progress?'#3BB3BD':'#dde8ea')+'"></div>';}).join('');
+    var allQ=[];
+    if(cd.blocks&&cd.blocks.length){cd.blocks.forEach(function(b){(b.questions||[]).forEach(function(q){allQ.push(q);});});}
+    else if(cd.questions)allQ=cd.questions;
+    var wuH='';
+    if(cd.warmup&&cd.warmup.length){
+      wuH='<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#854F0B;margin-bottom:8px">🔥 Warm Up</div>'
+        +cd.warmup.map(function(q){return '<div style="font-size:14px;color:#2d3e50;padding:7px 0;border-bottom:1px solid #f4f7f8;display:flex;gap:8px"><span style="color:#EF9F27;font-weight:700;flex-shrink:0">·</span>'+esc(q)+'</div>';}).join('')+'</div>';
+    }
+    var qH='';
+    if(allQ.length){
+      qH='<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#2a8a94;margin-bottom:8px">💬 Konuşma Soruları</div>'
+        +allQ.map(function(q,i){return '<div style="font-size:14px;color:#2d3e50;padding:7px 0;border-bottom:1px solid #f4f7f8;display:flex;gap:8px"><span style="color:#3BB3BD;font-weight:700;flex-shrink:0;min-width:22px">'+(i+1)+'.</span>'+esc(q)+'</div>';}).join('')+'</div>';
+    }
+    var vH='';
+    if(cd.vocab&&cd.vocab.length){
+      vH='<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7a9199;margin-bottom:8px">Kelimeler</div><div style="display:flex;flex-wrap:wrap;gap:6px">'
+        +cd.vocab.map(function(v,i){var cc=CH[i%CH.length];return '<span style="font-size:13px;font-weight:500;padding:5px 12px;border-radius:20px;background:'+cc.bg+';color:'+cc.c+';border:1px solid '+cc.b+'">'+esc(v)+'</span>';}).join('')+'</div></div>';
+    }
+    var mH='';
+    if(cd.models&&cd.models.length){
+      mH='<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#185FA5;margin-bottom:8px">Model Cümleler</div>'
+        +cd.models.map(function(m){return '<div style="font-size:14px;color:#2d3e50;padding:6px 0;border-bottom:1px solid #f4f7f8">— <strong>'+esc(m)+'</strong></div>';}).join('')+'</div>';
+    }
+    var fsH='';
+    if(cd.freeSpeaking){
+      var fs=cd.freeSpeaking;
+      var levels=[];
+      if(fs.easy)levels.push({l:'Kolay',bg:'#E1F5EE',c:'#085041',q:fs.easy});
+      if(fs.medium)levels.push({l:'Orta',bg:'#FAEEDA',c:'#633806',q:fs.medium});
+      if(fs.hard)levels.push({l:'Zor',bg:'#FBEAF0',c:'#72243E',q:fs.hard});
+      if(levels.length){
+        fsH='<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#534AB7;margin-bottom:8px">🗣 Serbest Konuşma</div>'
+          +levels.map(function(lv){
+            var qs=Array.isArray(lv.q)?lv.q:[lv.q];
+            return qs.map(function(q){
+              return '<div style="font-size:14px;color:#2d3e50;padding:7px 0;border-bottom:1px solid #f4f7f8;display:flex;gap:8px;align-items:flex-start">'
+                +'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+lv.bg+';color:'+lv.c+';flex-shrink:0;margin-top:2px">'+lv.l+'</span>'
+                +esc(q)+'</div>';
+            }).join('');
+          }).join('')
+          +'</div>';
+      }
+    }
+    var hc=wuH||qH||vH||mH||fsH||s.notes;
+    h+='<div style="border:1px solid #e4ecee;border-radius:14px;overflow:hidden;margin-bottom:12px;background:white">'
+      +'<div onclick="tC(\''+cid+'\')" style="background:'+tb+';padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:'+(hc?'pointer':'default')+'">'
+      +'<div style="font-size:28px;flex-shrink:0">'+esc(cd.icon||'💬')+'</div>'
+      +'<div style="flex:1"><div style="font-size:15px;font-weight:700;color:#1a2535;margin-bottom:3px">'+esc(s.topic)+'</div>'
+      +'<div style="display:flex;gap:5px;flex-wrap:wrap"><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+lc.bg+';color:'+lc.c+'">'+esc(s.cardLevel)+'</span>'
+      +(s.lessonType?'<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:rgba(0,0,0,.08);color:rgba(0,0,0,.45)">'+esc(s.lessonType)+'</span>':'')
+      +'</div></div>'
+      +'<div style="text-align:right;flex-shrink:0"><div style="font-size:11px;color:rgba(0,0,0,.35);margin-bottom:4px">'+esc(s.date)+'</div>'
+      +'<div style="display:flex;gap:2px;justify-content:flex-end;margin-bottom:4px">'+dots+'</div>'
+      +(hc?'<div id="arr-'+cid+'" style="font-size:10px;color:rgba(0,0,0,.3);transition:transform .2s;transform:rotate(-90deg)">▼</div>':'')
+      +'</div></div>'
+      +(hc?'<div id="cb-'+cid+'" style="display:none;padding:18px 20px;border-top:1px solid rgba(0,0,0,.06)">'+wuH+qH+vH+mH+fsH
+        +(s.notes?'<div style="padding:10px 14px;background:#f4f7f8;border-radius:8px;font-size:13px;color:#5a7a80;line-height:1.6"><span style="font-weight:600;color:#2a8a94">📝 Not: </span>'+esc(s.notes)+'</div>':'')
+        +'</div>':'')
+      +'</div>';
+  });
+  return h;
+}
+function bCurriculum(){
+  var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
+  var done=D.doneTopics||[];
+  var h='<div class="card"><div style="font-size:16px;font-weight:700;color:#1a2535;margin-bottom:14px">📍 Müfredat İlerlemesi</div>'
+    +'<div style="height:8px;background:#e4ecee;border-radius:4px;overflow:hidden;margin-bottom:5px"><div style="height:100%;width:'+D.pct+'%;background:#3BB3BD;border-radius:4px"></div></div>'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:16px"><span style="font-size:11px;color:#7a9199">'+done.length+' / '+D.totalTopics+' konu</span><span style="font-size:11px;color:#3BB3BD;font-weight:600">%'+D.pct+'</span></div>';
+  if(!done.length){h+='<div style="text-align:center;padding:16px;color:#9ab0b5">Henüz tamamlanan konu yok</div>';}
+  else{
+    var bl={};
+    done.forEach(function(t){if(!bl[t.level])bl[t.level]=[];bl[t.level].push(t);});
+    Object.keys(bl).sort().forEach(function(lvl){
+      var lc=LVL[lvl]||{bg:'#f4f7f8',c:'#5a7a80'};
+      h+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:'+lc.c+';margin:12px 0 6px;padding:2px 8px;background:'+lc.bg+';border-radius:6px;display:inline-block">'+lvl+'</div><div>';
+      bl[lvl].forEach(function(t){
+        h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:#E1F5EE;margin-bottom:3px">'
+          +'<div style="font-size:10px;color:#9ab0b5;width:24px">'+esc(t.num)+'</div>'
+          +'<div style="font-size:13px;color:#085041;font-weight:500;flex:1">'+esc(t.tr)+'</div>'
+          +'<div style="width:16px;height:16px;border-radius:4px;background:#3BB3BD;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:700">✓</div></div>';
+      });
+      h+='</div>';
+    });
+  }
+  return h+'</div>';
+}
+function bWorksheets(){
+  var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
+  var ws=D.worksheets||[];
+  if(!ws.length) return '<div class="card" style="text-align:center;padding:24px;color:#9ab0b5">Henüz ödev eklenmemiş</div>';
+  var h='';
+  ws.forEach(function(w,i){
+    var lc=LVL[w.level]||{bg:'#f4f7f8',c:'#5a7a80'};
+    var qs=w.questions||[];
+    var icon = qs.length ? '✦' : '📄';
+    var iconBg = qs.length ? '#EEEDFE' : '#E6F1FB';
+    // Kart başlığı
+    h+='<div class="card" style="cursor:'+(qs.length?'pointer':'default')+'" onclick="'+(qs.length?'toggleWs('+i+')':'')+(qs.length?'"':'"')+'">'+
+      '<div style="display:flex;align-items:center;gap:12px">'+
+        '<div style="width:40px;height:40px;border-radius:10px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+icon+'</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:14px;font-weight:700;color:#1a2535">'+esc(w.title)+'</div>'+
+          '<div style="font-size:11px;color:#7a9199;margin-top:2px">'+(w.topicEn?esc(w.topicEn)+' · ':'')+esc(w.level)+(qs.length?' · '+qs.length+' soru':'')+'</div>'+
+        '</div>'+
+        '<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;background:'+lc.bg+';color:'+lc.c+'">'+esc(w.level)+'</span>'+
+        (qs.length?'<span id="ws-arr-'+i+'" style="font-size:16px;color:#b0c4c8;margin-left:4px">›</span>':'')+
+      '</div>';
+    // Sorular (gizli başlar)
+    if(qs.length){
+      h+='<div id="ws-body-'+i+'" style="display:none;margin-top:16px;border-top:1px solid #f0f4f5;padding-top:16px">';
+      qs.forEach(function(q,qi){
+        h+='<div style="margin-bottom:14px;padding:12px 14px;background:#f8fafb;border-radius:10px;border:1px solid #eef1f3">';
+        h+='<div style="display:flex;justify-content:space-between;margin-bottom:6px">';
+        h+='<span style="font-size:10px;font-weight:600;color:#1D9E75;text-transform:uppercase;letter-spacing:.06em">Soru '+(qi+1)+'</span>';
+        h+='<span style="font-size:10px;padding:2px 8px;border-radius:6px;background:'+(q.type==='mc'?'#E6F1FB':'#E1F5EE')+';color:'+(q.type==='mc'?'#0C447C':'#085041')+'">'+(q.type==='mc'?'Çoktan Seçmeli':'Boşluk Doldurma')+'</span>';
+        h+='</div>';
+        h+='<div style="font-size:14px;color:#2d3e50;margin-bottom:8px;line-height:1.5">'+esc(q.text)+'</div>';
+        if(q.type==='mc'){
+          (q.options||[]).forEach(function(opt){
+            h+='<div style="padding:6px 12px;border-radius:8px;font-size:13px;margin-bottom:4px;border:1px solid #dde8ea;color:#2d3e50;background:white" '+
+              'onclick="checkMc(this,\''+escQ(opt)+'\',\''+escQ(q.answer)+'\')">'+esc(opt)+'</div>';
+          });
+        } else {
+          h+='<div style="display:flex;gap:8px;align-items:center">'+
+            '<input type="text" placeholder="Cevabını yaz..." style="flex:1;padding:8px 12px;border:1.5px solid #dde8ea;border-radius:8px;font-size:13px;outline:none" '+
+            'onkeydown="if(event.key===\'Enter\')checkFill(this,\''+escQ(q.answer)+'\')" >'+
+            '<button onclick="checkFill(this.previousSibling,\''+escQ(q.answer)+'\')" style="padding:8px 14px;border-radius:8px;background:#3BB3BD;color:white;border:none;font-size:12px;cursor:pointer">✓</button>'+
+          '</div>';
+        }
+        h+='</div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+  });
+  return h;
+}
+function toggleWs(i){
+  var b=document.getElementById('ws-body-'+i);
+  var a=document.getElementById('ws-arr-'+i);
+  if(!b)return;
+  var open=b.style.display==='block';
+  b.style.display=open?'none':'block';
+  if(a)a.style.transform=open?'':'rotate(90deg)';
+}
+function escQ(s){return s?String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"):''}
+function checkMc(el,opt,answer){
+  var par=el.parentNode;
+  Array.from(par.children).forEach(function(c){
+    c.style.pointerEvents='none';
+    if(c.textContent.trim()===answer){c.style.background='#E1F5EE';c.style.borderColor='#5DCAA5';c.style.color='#085041';}
+    else if(c===el&&opt!==answer){c.style.background='#fef2f2';c.style.borderColor='#f5c0c0';c.style.color='#c05050';}
+  });
+}
+function checkFill(inp,answer){
+  var val=inp.value.trim().toLowerCase();
+  var ok=val===answer.toLowerCase().trim();
+  inp.style.borderColor=ok?'#5DCAA5':'#f5c0c0';
+  inp.style.background=ok?'#E1F5EE':'#fef2f2';
+  inp.readOnly=true;
+  inp.nextSibling.textContent=ok?'✓':'Cevap: '+answer;
+  inp.nextSibling.style.background=ok?'#1D9E75':'#c05050';
+}
+function bSessions(){
+  var ses=D.generalSessions||[];
+  var h='<div class="card"><div style="font-size:16px;font-weight:700;color:#1a2535;margin-bottom:14px">📅 Tüm Dersler <span style="font-size:12px;font-weight:400;color:#7a9199">'+ses.length+' ders</span></div>';
+  if(!ses.length){h+='<div style="text-align:center;padding:16px;color:#9ab0b5">Henüz ders kaydı yok</div>';}
+  else{ses.forEach(function(s){var dots=[1,2,3,4,5].map(function(i){return '<div style="width:7px;height:7px;border-radius:50%;background:'+(i<=s.progress?'#3BB3BD':'#dde8ea')+'"></div>';}).join('');h+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f0f4f5"><div style="width:80px;flex-shrink:0"><div style="font-size:11px;color:#7a9199">'+esc(s.date)+'</div><div style="display:flex;gap:2px;margin-top:4px">'+dots+'</div></div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:#1a2535;margin-bottom:3px">'+esc(s.topic)+(s.lessonType?'<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:#f4f7f8;color:#5a7a80;margin-left:6px">'+esc(s.lessonType)+'</span>':'')+'</div>'+(s.notes?'<div style="font-size:12px;color:#7a9199;line-height:1.5">'+esc(s.notes)+'</div>':'')+'</div></div>';});}
+  return h+'</div>';
+}
+</script>
+</body>
+</html>
