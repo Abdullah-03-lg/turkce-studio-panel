@@ -38,7 +38,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div style="background:#232f42;display:flex;overflow-x:auto;padding:0 16px">
       <button class="tab on" onclick="sw('speaking',this)">💬 Konuşma Dersleri</button>
       <button class="tab" onclick="sw('curriculum',this)">📍 Müfredat</button>
-      <button class="tab" onclick="sw('worksheets',this)">📚 Ödevler</button>
+      <button class="tab" onclick="sw('worksheets',this)">✦ Ödevler</button>
+      <button class="tab" onclick="sw('grammar',this)">📖 Konu Anlatımı</button>
+      <button class="tab" onclick="sw('texts',this)">📄 Metinler</button>
       <button class="tab" onclick="sw('sessions',this)">📅 Tüm Dersler</button>
     </div>
   </div>
@@ -53,6 +55,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div id="speaking" class="sec show"></div>
     <div id="curriculum" class="sec"></div>
     <div id="worksheets" class="sec"></div>
+    <div id="grammar" class="sec"></div>
+    <div id="texts" class="sec"></div>
     <div id="sessions" class="sec"></div>
     <div id="gen-at" style="font-size:11px;color:#b0c4c8;text-align:center;margin-top:20px"></div>
   </div>
@@ -115,6 +119,8 @@ function buildApp(){
   document.getElementById('speaking').innerHTML=bSpeaking();
   document.getElementById('curriculum').innerHTML=bCurriculum();
   document.getElementById('worksheets').innerHTML=bWorksheets();
+  document.getElementById('grammar').innerHTML=bMaterials('grammar');
+  document.getElementById('texts').innerHTML=bMaterials('text');
   document.getElementById('sessions').innerHTML=bSessions();
   document.getElementById('gen-at').textContent='Son güncelleme: '+(D.generatedAt||'');
 }
@@ -219,8 +225,8 @@ function bCurriculum(){
 }
 function bWorksheets(){
   var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
-  var ws=D.worksheets||[];
-  if(!ws.length) return '<div class="card" style="text-align:center;padding:24px;color:#9ab0b5">Henüz ödev eklenmemiş</div>';
+  var ws=(D.worksheets||[]).filter(function(w){return w.source==='ai' && w.questions && w.questions.length;});
+  if(!ws.length) return '<div class="card" style="text-align:center;padding:24px;color:#9ab0b5">Henüz AI ödev eklenmemiş</div>';
   var h='';
   ws.forEach(function(w,i){
     var lc=LVL[w.level]||{bg:'#f4f7f8',c:'#5a7a80'};
@@ -368,6 +374,29 @@ function showWsScore(wsIdx,cor,tot){
     }
   });
 }
+function bMaterials(type){
+  var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
+  var label=type==='grammar'?'Konu Anlatımı':'Metin';
+  var icon=type==='grammar'?'📖':'📄';
+  var items=(D.worksheets||[]).filter(function(w){return w.source==='manual' && w.materialType===type;});
+  if(!items.length) return '<div class="card" style="text-align:center;padding:24px;color:#9ab0b5">Henüz '+label+' eklenmemiş</div>';
+  var h='';
+  items.forEach(function(w){
+    var lc=LVL[w.level]||{bg:'#f4f7f8',c:'#5a7a80'};
+    h+='<div class="card">'
+      +'<div style="display:flex;align-items:center;gap:12px">'
+      +'<div style="width:40px;height:40px;border-radius:10px;background:'+(type==='grammar'?'#E6F1FB':'#EAF3DE')+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+icon+'</div>'
+      +'<div style="flex:1">'
+      +'<div style="font-size:14px;font-weight:700;color:#1a2535">'+esc(w.title||w.topic||'')+'</div>'
+      +(w.topicEn?'<div style="font-size:11px;color:#7a9199;margin-top:2px">'+esc(w.topicEn)+'</div>':'')
+      +'</div>'
+      +'<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;background:'+lc.bg+';color:'+lc.c+'">'+esc(w.level)+'</span>'
+      +'</div>'
+      +'</div>';
+  });
+  return h;
+}
+
 function bSessions(){
   var speaking=(D.speakingSessions||[]).map(function(s){return {date:s.date,topic:s.topic,lessonType:s.lessonType||'Konuşma',notes:s.notes||'',progress:s.progress||3};});
   var general=D.generalSessions||[];
