@@ -250,14 +250,14 @@ function bWorksheets(){
         h+='<div style="font-size:14px;color:#2d3e50;margin-bottom:8px;line-height:1.5">'+esc(q.text)+'</div>';
         if(q.type==='mc'){
           (q.options||[]).forEach(function(opt){
-            h+='<div style="padding:6px 12px;border-radius:8px;font-size:13px;margin-bottom:4px;border:1px solid #dde8ea;color:#2d3e50;background:white" '+
-              'onclick="checkMc(this,\''+escQ(opt)+'\',\''+escQ(q.answer)+'\')">'+esc(opt)+'</div>';
+            h+='<div style="padding:6px 12px;border-radius:8px;font-size:13px;margin-bottom:4px;border:1px solid #dde8ea;color:#2d3e50;background:white;cursor:pointer" '+
+              'onclick="event.stopPropagation();checkMc(this,\''+escQ(opt)+'\',\''+escQ(q.answer)+'\')">'+esc(opt)+'</div>';
           });
         } else {
           h+='<div style="display:flex;gap:8px;align-items:center">'+
-            '<input type="text" placeholder="Cevabını yaz..." style="flex:1;padding:8px 12px;border:1.5px solid #dde8ea;border-radius:8px;font-size:13px;outline:none" '+
-            'onkeydown="if(event.key===\'Enter\')checkFill(this,\''+escQ(q.answer)+'\')" >'+
-            '<button onclick="checkFill(this.previousSibling,\''+escQ(q.answer)+'\')" style="padding:8px 14px;border-radius:8px;background:#3BB3BD;color:white;border:none;font-size:12px;cursor:pointer">✓</button>'+
+            '<input type="text" placeholder="Cevabını yaz..." onclick="event.stopPropagation()" style="flex:1;padding:8px 12px;border:1.5px solid #dde8ea;border-radius:8px;font-size:13px;outline:none" '+
+            'onkeydown="event.stopPropagation();if(event.key===\'Enter\')checkFill(this,\''+escQ(q.answer)+'\')" >'+
+            '<button onclick="event.stopPropagation();checkFill(this.previousSibling,\''+escQ(q.answer)+'\')" style="padding:8px 14px;border-radius:8px;background:#3BB3BD;color:white;border:none;font-size:12px;cursor:pointer">✓</button>'+
           '</div>';
         }
         h+='</div>';
