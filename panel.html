@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Türkçe Studio — Öğrenci Paneli</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f7f8;color:#2d3e50;min-height:100vh}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#dde8ea;border-radius:2px}
+
+/* LOGIN */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#f4f7f8 0%,#eaf3f4 100%)}
+.login-card{background:white;border-radius:20px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 12px 48px rgba(59,179,189,0.12);text-align:center}
+.login-avatar{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto 16px;background:#E1F5EE;color:#085041}
+.login-name{font-size:24px;font-weight:700;color:#121118;letter-spacing:-0.02em;margin-bottom:4px}
+.login-sub{font-size:13px;color:#7a9199;margin-bottom:28px}
+.login-input{width:100%;padding:14px 16px;border:2px solid #dde8ea;border-radius:12px;font-size:18px;text-align:center;letter-spacing:4px;outline:none;transition:border-color .15s}
+.login-input:focus{border-color:#3BB3BD}
+.login-btn{width:100%;margin-top:14px;padding:14px;border-radius:12px;background:#3BB3BD;color:white;border:none;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.login-btn:hover{opacity:.9}
+.login-err{color:#dc2626;font-size:12px;margin-top:8px;min-height:16px}
+.login-brand{margin-top:24px;font-size:11px;color:#b0c4c8}
+
+/* APP */
+#app{display:none}
+.header{background:#1a2535;padding:0;display:flex;align-items:stretch;position:sticky;top:0;z-index:100}
+.header-left{padding:14px 20px;display:flex;align-items:center;gap:12px;flex:1}
+.header-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0}
+.header-name{font-size:16px;font-weight:700;color:white;letter-spacing:-0.01em}
+.header-meta{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.header-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;margin-left:8px;flex-shrink:0}
+
+/* TABS */
+.tabs{background:#232f42;display:flex;overflow-x:auto;padding:0 16px;gap:0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:12px 16px;font-size:13px;font-weight:500;color:rgba(255,255,255,.4);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.tab.active{color:#3BB3BD;border-bottom-color:#3BB3BD}
+
+/* BODY */
+.body{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+
+/* TEACHER NOTE */
+.teacher-note{background:#eaf3f4;border:1px solid #c8e8eb;border-radius:12px;padding:16px 18px;margin-bottom:20px;display:flex;gap:12px}
+.tn-icon{font-size:22px;flex-shrink:0;margin-top:2px}
+.tn-label{font-size:10px;font-weight:700;color:#2a8a94;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.tn-text{font-size:14px;color:#2d3e50;line-height:1.7}
+
+/* CARDS */
+.card{background:white;border-radius:14px;border:1px solid #e4ecee;padding:18px 20px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:700;color:#1a2535;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+
+/* SESSION ROWS */
+.ses-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f0f4f5}
+.ses-row:last-child{border-bottom:none}
+.ses-date{width:80px;flex-shrink:0}
+.ses-date-txt{font-size:11px;color:#7a9199}
+.ses-dots{display:flex;gap:2px;margin-top:4px}
+.ses-dot{width:8px;height:8px;border-radius:50%}
+.ses-body{flex:1}
+.ses-topic{font-size:14px;font-weight:600;color:#1a2535;margin-bottom:3px}
+.ses-note{font-size:12px;color:#7a9199;line-height:1.5}
+.ses-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:#f4f7f8;color:#5a7a80;margin-left:6px;vertical-align:middle}
+
+/* PROGRESS BAR */
+.prog-wrap{margin-bottom:16px}
+.prog-bar-bg{height:8px;background:#e4ecee;border-radius:4px;overflow:hidden}
+.prog-bar-fill{height:100%;background:#3BB3BD;border-radius:4px;transition:width .4s}
+.prog-labels{display:flex;justify-content:space-between;margin-top:5px}
+.prog-label{font-size:11px;color:#7a9199}
+
+/* TOPIC LIST */
+.topic-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;margin-bottom:3px}
+.topic-row.done{background:#E1F5EE}
+.topic-row.current{background:#eaf3f4;border:1px solid #3BB3BD}
+.topic-num{font-size:10px;color:#9ab0b5;width:24px;flex-shrink:0}
+.topic-name{font-size:13px;color:#2d3e50;flex:1}
+.topic-row.done .topic-name{color:#085041;font-weight:500}
+.topic-check{width:16px;height:16px;border-radius:4px;background:#3BB3BD;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:700;flex-shrink:0}
+.topic-lvl{font-size:9px;padding:1px 6px;border-radius:6px;background:#f4f7f8;color:#7a9199}
+
+/* WS ROWS */
+.ws-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f4f5}
+.ws-row:last-child{border-bottom:none}
+.ws-icon{width:32px;height:32px;border-radius:8px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.ws-title{font-size:13px;font-weight:500;color:#1a2535;flex:1}
+.ws-level{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+
+/* EMPTY */
+.empty{text-align:center;padding:32px 20px;color:#9ab0b5}
+.empty-icon{font-size:36px;opacity:.3;margin-bottom:10px}
+.empty-text{font-size:13px}
+
+/* GENERATED */
+.generated-at{font-size:11px;color:#b0c4c8;text-align:center;margin-top:24px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login">
+  <div class="login-card">
+    <div class="login-avatar" id="l-avatar">T</div>
+    <div class="login-name" id="l-name">Türkçe Studio</div>
+    <div class="login-sub">Kişisel Öğrenci Paneli</div>
+    <input class="login-input" id="pwd" type="password" placeholder="Şifreni gir" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Giriş Yap</button>
+    <div class="login-err" id="l-err"></div>
+    <div class="login-brand">Türkçe Studio · Öğretmen Platformu</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-avatar" id="a-avatar">T</div>
+      <div>
+        <div class="header-name" id="a-name">İsim</div>
+        <div class="header-meta" id="a-meta">Seviye</div>
+      </div>
+      <span class="header-badge" id="a-badge"></span>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="body" id="body"></div>
+</div>
+
+<script>
+var D = null;
+
+// URL'den veriyi çek — hem ?data= hem #data= destekler (file:// için)
+(function(){
+  var raw = null;
+  // Önce hash dene (#data=...) — file:// protokolünde çalışır
+  var hash = window.location.hash.slice(1);
+  var hashMatch = hash.match(/data=([^&]+)/);
+  if(hashMatch) raw = hashMatch[1];
+  // Yoksa query string dene (?data=...)
+  if(!raw){
+    var params = new URLSearchParams(window.location.search);
+    raw = params.get('data');
+  }
+  if(!raw){ document.getElementById('l-name').textContent='Geçersiz Link'; return; }
+  try{
+    D = JSON.parse(decodeURIComponent(atob(raw)));
+    var COLORS = ['#E1F5EE:#085041','#E6F1FB:#0C447C','#FAEEDA:#633806','#FBEAF0:#72243E'];
+    var ci = D.name.charCodeAt(0) % COLORS.length;
+    var parts = COLORS[ci].split(':');
+    var av = document.getElementById('l-avatar');
+    av.style.background = parts[0]; av.style.color = parts[1];
+    av.textContent = D.name.charAt(0).toUpperCase();
+    document.getElementById('l-name').textContent = D.name;
+    document.title = D.name + ' — Türkçe Studio';
+  } catch(e){
+    document.getElementById('l-name').textContent = 'Bozuk Link';
+    console.error(e);
+  }
+})();
+
+function doLogin(){
+  if(!D) return;
+  var v = document.getElementById('pwd').value.trim();
+  if(v.toLowerCase() === D.password.toLowerCase()){
+    document.getElementById('login').style.display = 'none';
+    buildApp();
+    document.getElementById('app').style.display = 'block';
+  } else {
+    document.getElementById('l-err').textContent = 'Şifre yanlış, tekrar dene.';
+  }
+}
+
+function buildApp(){
+  var COLORS = ['#E1F5EE:#085041','#E6F1FB:#0C447C','#FAEEDA:#633806','#FBEAF0:#72243E'];
+  var ci = D.name.charCodeAt(0) % COLORS.length;
+  var parts = COLORS[ci].split(':');
+
+  var av = document.getElementById('a-avatar');
+  av.style.background = parts[0]; av.style.color = parts[1];
+  av.textContent = D.name.charAt(0).toUpperCase();
+  document.getElementById('a-name').textContent = D.name;
+  document.getElementById('a-meta').textContent = 'Başlangıç: ' + (D.startDate||'—') + ' · ' + D.doneTopics.length + ' konu tamamlandı';
+
+  var badge = document.getElementById('a-badge');
+  badge.textContent = D.level;
+  var LVL = {A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
+  var lc = LVL[D.level]||{bg:'#f4f7f8',c:'#5a7a80'};
+  badge.style.background = lc.bg; badge.style.color = lc.c;
+
+  // Tabs
+  var tabs = [
+    {id:'speaking', icon:'💬', label:'Konuşma Dersleri'},
+    {id:'curriculum', icon:'📍', label:'Müfredat'},
+    {id:'worksheets', icon:'📄', label:'Worksheetler'},
+    {id:'sessions', icon:'📅', label:'Tüm Dersler'},
+  ];
+  var tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = tabs.map(function(t,i){
+    return '<button class="tab'+(i===0?' active':'')+'" onclick="switchTab(\''+t.id+'\')" id="tab-btn-'+t.id+'">'+t.icon+' '+t.label+'</button>';
+  }).join('');
+
+  renderTab('speaking');
+}
+
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('tab-btn-'+id);
+  if(btn) btn.classList.add('active');
+  renderTab(id);
+}
+
+function renderTab(id){
+  var html = '';
+
+  // Öğretmen notu
+  if(D.teacherNote){
+    html += '<div class="teacher-note"><div class="tn-icon">💬</div><div><div class="tn-label">Öğretmenden</div><div class="tn-text">'+esc(D.teacherNote)+'</div></div></div>';
+  }
+
+  if(id === 'speaking'){
+    html += renderSpeaking();
+  } else if(id === 'curriculum'){
+    html += renderCurriculum();
+  } else if(id === 'worksheets'){
+    html += renderWorksheets();
+  } else if(id === 'sessions'){
+    html += renderSessions();
+  }
+
+  html += '<div class="generated-at">Son güncelleme: ' + (D.generatedAt||'—') + '</div>';
+  document.getElementById('body').innerHTML = html;
+}
+
+function renderSpeaking(){
+  var ses = D.speakingSessions || [];
+  var html = '<div class="card"><div class="card-title"><div class="card-title-icon" style="background:#E1F5EE">💬</div>Konuşma Dersleri <span style="font-size:11px;font-weight:400;color:#7a9199;margin-left:4px">'+ses.length+' ders</span></div>';
+  if(!ses.length){
+    html += '<div class="empty"><div class="empty-icon">💬</div><div class="empty-text">Henüz konuşma dersi yok</div></div>';
+  } else {
+    html += ses.map(function(s){
+      var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
+      var lc=LVL[s.cardLevel]||{bg:'#f4f7f8',c:'#5a7a80'};
+      var TYPE_BG={card:'#E1F5EE',scenario:'#FAEEDA',debate:'#E6F1FB',image:'#FBEAF0'};
+      var cd = s.cardData || {};
+      var thumbBg = TYPE_BG[cd.type] || '#E1F5EE';
+      var dots=[1,2,3,4,5].map(function(i){ return '<div style="width:8px;height:8px;border-radius:50%;background:'+(i<=s.progress?'#3BB3BD':'#e4ecee')+'"></div>'; }).join('');
+
+      var warmupHTML = '';
+      if(cd.warmup && cd.warmup.length){
+        warmupHTML = '<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#854F0B;margin-bottom:7px">🔥 Warm Up</div>'
+          +cd.warmup.map(function(q){ return '<div style="font-size:13px;color:#2d3e50;padding:5px 0;border-bottom:1px solid #f0f4f5;display:flex;gap:6px"><span style="color:#EF9F27;font-weight:700">·</span>'+esc(q)+'</div>'; }).join('')
+          +'</div>';
+      }
+
+      var questHTML = '';
+      var allQ = [];
+      if(cd.blocks && cd.blocks.length){ cd.blocks.forEach(function(b){ (b.questions||[]).forEach(function(q){ allQ.push(q); }); }); }
+      else if(cd.questions && cd.questions.length){ allQ = cd.questions; }
+      if(allQ.length){
+        questHTML = '<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#2a8a94;margin-bottom:7px">💬 Konuşma Soruları</div>'
+          +allQ.map(function(q,i){ return '<div style="font-size:13px;color:#2d3e50;padding:5px 0;border-bottom:1px solid #f0f4f5;display:flex;gap:6px"><span style="color:#3BB3BD;font-weight:700;flex-shrink:0;min-width:20px">'+(i+1)+'.</span>'+esc(q)+'</div>'; }).join('')
+          +'</div>';
+      }
+
+      var CHIP_COLORS=[{bg:'#E1F5EE',c:'#085041',b:'#9FE1CB'},{bg:'#E6F1FB',c:'#0C447C',b:'#B5D4F4'},{bg:'#FAEEDA',c:'#412402',b:'#FAC775'},{bg:'#FBEAF0',c:'#4B1528',b:'#F4C0D1'},{bg:'#EAF3DE',c:'#173404',b:'#C0DD97'},{bg:'#EEEDFE',c:'#26215C',b:'#CECBF6'}];
+      var vocabHTML = '';
+      if(cd.vocab && cd.vocab.length){
+        vocabHTML = '<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7a9199;margin-bottom:7px">Kelimeler</div><div style="display:flex;flex-wrap:wrap;gap:5px">'+cd.vocab.map(function(v,i){ var cc=CHIP_COLORS[i%CHIP_COLORS.length]; return '<span style="font-size:12px;font-weight:500;padding:4px 10px;border-radius:20px;background:'+cc.bg+';color:'+cc.c+';border:1px solid '+cc.b+'">'+esc(v)+'</span>'; }).join('')+'</div></div>';
+      }
+
+      var modelsHTML = '';
+      if(cd.models && cd.models.length){
+        modelsHTML = '<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#185FA5;margin-bottom:7px">Model Cümleler</div>'+cd.models.map(function(m){ return '<div style="font-size:13px;color:#2d3e50;padding:4px 0;border-bottom:1px solid #f0f4f5">— <strong>'+esc(m)+'</strong></div>'; }).join('')+'</div>';
+      }
+
+      return '<div style="border:1px solid #e4ecee;border-radius:14px;overflow:hidden;margin-bottom:14px">'
+        +'<div style="background:'+thumbBg+';padding:16px 20px;display:flex;align-items:center;gap:14px">'
+        +'<div style="font-size:30px">'+esc(cd.icon||'💬')+'</div>'
+        +'<div style="flex:1"><div style="font-size:17px;font-weight:700;color:#1a2535;margin-bottom:4px">'+esc(s.topic)+'</div>'
+        +'<div style="display:flex;gap:6px;flex-wrap:wrap"><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:'+lc.bg+';color:'+lc.c+'">'+esc(s.cardLevel)+'</span>'
+        +(s.lessonType?'<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.07);color:#5a7a80">'+esc(s.lessonType)+'</span>':'')
+        +'</div></div>'
+        +'<div style="text-align:right"><div style="font-size:11px;color:rgba(0,0,0,.4);margin-bottom:4px">'+esc(s.date)+'</div><div style="display:flex;gap:2px;justify-content:flex-end">'+dots+'</div></div>'
+        +'</div>'
+        +'<div style="padding:18px 20px;background:white">'
+        +((warmupHTML||questHTML)?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">'+warmupHTML+questHTML+'</div>':'')
+        +((vocabHTML||modelsHTML)?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:14px;border-top:1px solid #f0f4f5">'+vocabHTML+modelsHTML+'</div>':'')
+        +(s.notes?'<div style="margin-top:12px;padding:10px 14px;background:#f4f7f8;border-radius:8px;font-size:12px;color:#5a7a80;line-height:1.6"><span style="font-weight:600;color:#2a8a94">📝 Not: </span>'+esc(s.notes)+'</div>':'')
+        +'</div></div>';
+    }).join('');
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderCurriculum(){
+  var done = D.doneTopics || [];
+  var total = D.totalTopics || 0;
+  var pct = D.pct || 0;
+  var html = '<div class="card">'
+    +'<div class="card-title"><div class="card-title-icon" style="background:#FAEEDA">📍</div>Müfredat İlerlemesi</div>'
+    +'<div class="prog-wrap">'
+    +'<div class="prog-bar-bg"><div class="prog-bar-fill" style="width:'+pct+'%"></div></div>'
+    +'<div class="prog-labels"><span class="prog-label">'+done.length+' / '+total+' konu</span><span class="prog-label" style="color:#3BB3BD;font-weight:600">%'+pct+'</span></div>'
+    +'</div>';
+
+  if(done.length){
+    var byLevel = {};
+    done.forEach(function(t){
+      if(!byLevel[t.level]) byLevel[t.level] = [];
+      byLevel[t.level].push(t);
+    });
+    Object.keys(byLevel).sort().forEach(function(lvl){
+      var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
+      var lc=LVL[lvl]||{bg:'#f4f7f8',c:'#5a7a80'};
+      html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:'+lc.c+';margin:12px 0 6px;padding:2px 8px;background:'+lc.bg+';border-radius:6px;display:inline-block">'+lvl+'</div><div>';
+      byLevel[lvl].forEach(function(t){
+        html += '<div class="topic-row done">'
+          +'<div class="topic-num">'+t.num+'</div>'
+          +'<div class="topic-name">'+esc(t.tr)+'</div>'
+          +'<div class="topic-check">✓</div>'
+          +'</div>';
+      });
+      html += '</div>';
+    });
+  } else {
+    html += '<div class="empty"><div class="empty-icon">📍</div><div class="empty-text">Henüz tamamlanan konu yok</div></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderWorksheets(){
+  var ws = D.worksheets || [];
+  var html = '<div class="card"><div class="card-title"><div class="card-title-icon" style="background:#E6F1FB">📄</div>Worksheetler <span style="font-size:11px;font-weight:400;color:#7a9199;margin-left:4px">'+ws.length+' dosya</span></div>';
+  if(!ws.length){
+    html += '<div class="empty"><div class="empty-icon">📄</div><div class="empty-text">Henüz worksheet eklenmemiş</div></div>';
+  } else {
+    var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
+    html += ws.map(function(w){
+      var lc=LVL[w.level]||{bg:'#f4f7f8',c:'#5a7a80'};
+      return '<div class="ws-row">'
+        +'<div class="ws-icon">📄</div>'
+        +'<div class="ws-title">'+esc(w.title)+'</div>'
+        +'<span class="ws-level" style="background:'+lc.bg+';color:'+lc.c+'">'+esc(w.level)+'</span>'
+        +(w.date?'<span style="font-size:10px;color:#9ab0b5;margin-left:6px">'+esc(w.date)+'</span>':'')
+        +'</div>';
+    }).join('');
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderSessions(){
+  var ses = D.generalSessions || [];
+  var html = '<div class="card"><div class="card-title"><div class="card-title-icon" style="background:#EEEDFE">📅</div>Tüm Dersler <span style="font-size:11px;font-weight:400;color:#7a9199;margin-left:4px">'+ses.length+' ders</span></div>';
+  if(!ses.length){
+    html += '<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">Henüz ders kaydı yok</div></div>';
+  } else {
+    html += ses.map(function(s){
+      var dots = [1,2,3,4,5].map(function(i){
+        return '<div class="ses-dot" style="background:'+(i<=s.progress?'#3BB3BD':'#e4ecee')+'"></div>';
+      }).join('');
+      return '<div class="ses-row">'
+        +'<div class="ses-date"><div class="ses-date-txt">'+esc(s.date)+'</div><div class="ses-dots">'+dots+'</div></div>'
+        +'<div class="ses-body">'
+        +'<div class="ses-topic">'+esc(s.topic)+(s.lessonType?'<span class="ses-badge">'+esc(s.lessonType)+'</span>':'')+'</div>'
+        +(s.notes?'<div class="ses-note">'+esc(s.notes)+'</div>':'')
+        +'</div></div>';
+    }).join('');
+  }
+  html += '</div>';
+  return html;
+}
+
+function esc(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
