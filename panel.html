@@ -232,13 +232,94 @@ function renderTab(id){
   document.getElementById('body').innerHTML = html;
 }
 
+function toggleCard(id){
+  var body = document.getElementById('card-body-'+id);
+  var arrow = document.getElementById('card-arrow-'+id);
+  if(!body) return;
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.style.transform = isOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
+}
+
 function renderSpeaking(){
   var ses = D.speakingSessions || [];
-  var html = '<div class="card"><div class="card-title"><div class="card-title-icon" style="background:#E1F5EE">💬</div>Konuşma Dersleri <span style="font-size:11px;font-weight:400;color:#7a9199;margin-left:4px">'+ses.length+' ders</span></div>';
+  var html = '<div style="margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="font-size:20px">💬</span><span style="font-size:16px;font-weight:700;color:#1a2535">Konuşma Dersleri</span><span style="font-size:12px;color:#7a9199;background:#f4f7f8;padding:2px 8px;border-radius:10px">'+ses.length+' ders</span></div>';
   if(!ses.length){
     html += '<div class="empty"><div class="empty-icon">💬</div><div class="empty-text">Henüz konuşma dersi yok</div></div>';
   } else {
-    html += ses.map(function(s){
+    html += ses.map(function(s, idx){
+      var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
+      var lc=LVL[s.cardLevel]||{bg:'#f4f7f8',c:'#5a7a80'};
+      var TYPE_BG={card:'#E1F5EE',scenario:'#FAEEDA',debate:'#E6F1FB',image:'#FBEAF0'};
+      var cd = s.cardData || {};
+      var thumbBg = TYPE_BG[cd.type] || '#E1F5EE';
+      var dots=[1,2,3,4,5].map(function(i){ return '<div style="width:7px;height:7px;border-radius:50%;background:'+(i<=s.progress?'#3BB3BD':'#dde8ea')+'"></div>'; }).join('');
+      var cardId = 'c'+idx;
+
+      // İçerik bölümleri
+      var warmupHTML = '';
+      if(cd.warmup && cd.warmup.length){
+        warmupHTML = '<div style="margin-bottom:16px">'
+          +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#854F0B;margin-bottom:8px;display:flex;align-items:center;gap:5px"><span>🔥</span> Warm Up</div>'
+          +cd.warmup.map(function(q){ return '<div style="font-size:14px;color:#2d3e50;padding:7px 0;border-bottom:1px solid #f4f7f8;display:flex;gap:8px;align-items:flex-start"><span style="color:#EF9F27;font-weight:700;flex-shrink:0;margin-top:1px">·</span><span>'+esc(q)+'</span></div>'; }).join('')
+          +'</div>';
+      }
+
+      var questHTML = '';
+      var allQ = [];
+      if(cd.blocks && cd.blocks.length){ cd.blocks.forEach(function(b){ (b.questions||[]).forEach(function(q){ allQ.push(q); }); }); }
+      else if(cd.questions && cd.questions.length){ allQ = cd.questions; }
+      if(allQ.length){
+        questHTML = '<div style="margin-bottom:16px">'
+          +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#2a8a94;margin-bottom:8px;display:flex;align-items:center;gap:5px"><span>💬</span> Konuşma Soruları</div>'
+          +allQ.map(function(q,i){ return '<div style="font-size:14px;color:#2d3e50;padding:7px 0;border-bottom:1px solid #f4f7f8;display:flex;gap:8px;align-items:flex-start"><span style="color:#3BB3BD;font-weight:700;flex-shrink:0;min-width:22px;margin-top:1px">'+(i+1)+'.</span><span>'+esc(q)+'</span></div>'; }).join('')
+          +'</div>';
+      }
+
+      var CHIP_COLORS=[{bg:'#E1F5EE',c:'#085041',b:'#9FE1CB'},{bg:'#E6F1FB',c:'#0C447C',b:'#B5D4F4'},{bg:'#FAEEDA',c:'#412402',b:'#FAC775'},{bg:'#FBEAF0',c:'#4B1528',b:'#F4C0D1'},{bg:'#EAF3DE',c:'#173404',b:'#C0DD97'},{bg:'#EEEDFE',c:'#26215C',b:'#CECBF6'}];
+      var vocabHTML = '';
+      if(cd.vocab && cd.vocab.length){
+        vocabHTML = '<div style="margin-bottom:16px">'
+          +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7a9199;margin-bottom:8px">Kelimeler</div>'
+          +'<div style="display:flex;flex-wrap:wrap;gap:6px">'+cd.vocab.map(function(v,i){ var cc=CHIP_COLORS[i%CHIP_COLORS.length]; return '<span style="font-size:13px;font-weight:500;padding:5px 12px;border-radius:20px;background:'+cc.bg+';color:'+cc.c+';border:1px solid '+cc.b+'">'+esc(v)+'</span>'; }).join('')+'</div></div>';
+      }
+
+      var modelsHTML = '';
+      if(cd.models && cd.models.length){
+        modelsHTML = '<div style="margin-bottom:16px">'
+          +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#185FA5;margin-bottom:8px">Model Cümleler</div>'
+          +cd.models.map(function(m){ return '<div style="font-size:14px;color:#2d3e50;padding:6px 0;border-bottom:1px solid #f4f7f8">— <strong>'+esc(m)+'</strong></div>'; }).join('')
+          +'</div>';
+      }
+
+      var hasContent = warmupHTML||questHTML||vocabHTML||modelsHTML||s.notes;
+
+      return '<div style="border:1px solid #e4ecee;border-radius:14px;overflow:hidden;margin-bottom:12px;background:white">'
+        // Header — tıklanabilir
+        +'<div onclick="toggleCard(\''+cardId+'\')" style="background:'+thumbBg+';padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:'+(hasContent?'pointer':'default')+'">'
+        +'<div style="font-size:28px;flex-shrink:0">'+esc(cd.icon||'💬')+'</div>'
+        +'<div style="flex:1">'
+        +'<div style="font-size:15px;font-weight:700;color:#1a2535;margin-bottom:3px">'+esc(s.topic)+'</div>'
+        +'<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">'
+        +'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:'+lc.bg+';color:'+lc.c+'">'+esc(s.cardLevel)+'</span>'
+        +(s.lessonType?'<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:rgba(0,0,0,.08);color:rgba(0,0,0,.45)">'+esc(s.lessonType)+'</span>':'')
+        +'</div></div>'
+        +'<div style="text-align:right;flex-shrink:0">'
+        +'<div style="font-size:11px;color:rgba(0,0,0,.35);margin-bottom:5px">'+esc(s.date)+'</div>'
+        +'<div style="display:flex;gap:2px;justify-content:flex-end;margin-bottom:5px">'+dots+'</div>'
+        +(hasContent?'<div id="card-arrow-'+cardId+'" style="font-size:10px;color:rgba(0,0,0,.3);transition:transform .2s;transform:rotate(-90deg)">▼</div>':'')
+        +'</div>'
+        +'</div>'
+        // İçerik — kapalı başlar
+        +(hasContent?'<div id="card-body-'+cardId+'" style="display:none;padding:18px 20px;border-top:1px solid rgba(0,0,0,.06)">'
+        +warmupHTML+questHTML+vocabHTML+modelsHTML
+        +(s.notes?'<div style="padding:10px 14px;background:#f4f7f8;border-radius:8px;font-size:13px;color:#5a7a80;line-height:1.6"><span style="font-weight:600;color:#2a8a94">📝 Not: </span>'+esc(s.notes)+'</div>':'')
+        +'</div>':'')
+        +'</div>';
+    }).join('');
+  }
+  return html;
+}
       var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
       var lc=LVL[s.cardLevel]||{bg:'#f4f7f8',c:'#5a7a80'};
       var TYPE_BG={card:'#E1F5EE',scenario:'#FAEEDA',debate:'#E6F1FB',image:'#FBEAF0'};
