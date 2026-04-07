@@ -220,10 +220,79 @@ function bCurriculum(){
 function bWorksheets(){
   var LVL={A1:{bg:'#E1F5EE',c:'#085041'},A2:{bg:'#E6F1FB',c:'#0C447C'},B1:{bg:'#FAEEDA',c:'#633806'},B2:{bg:'#FBEAF0',c:'#72243E'}};
   var ws=D.worksheets||[];
-  var h='<div class="card"><div style="font-size:16px;font-weight:700;color:#1a2535;margin-bottom:14px">📚 Ödevler <span style="font-size:12px;font-weight:400;color:#7a9199">'+ws.length+' dosya</span></div>';
-  if(!ws.length){h+='<div style="text-align:center;padding:16px;color:#9ab0b5">Henüz ödev eklenmemiş</div>';}
-  else{ws.forEach(function(w){var lc=LVL[w.level]||{bg:'#f4f7f8',c:'#5a7a80'};h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f4f5"><div style="width:32px;height:32px;border-radius:8px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">📄</div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:#1a2535">'+esc(w.title)+'</div>'+(w.topic?'<div style="font-size:11px;color:#7a9199;margin-top:1px">'+esc(w.topic)+'</div>':'')+'</div><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:'+lc.bg+';color:'+lc.c+'">'+esc(w.level)+'</span></div>';});}
-  return h+'</div>';
+  if(!ws.length) return '<div class="card" style="text-align:center;padding:24px;color:#9ab0b5">Henüz ödev eklenmemiş</div>';
+  var h='';
+  ws.forEach(function(w,i){
+    var lc=LVL[w.level]||{bg:'#f4f7f8',c:'#5a7a80'};
+    var qs=w.questions||[];
+    var icon = qs.length ? '✦' : '📄';
+    var iconBg = qs.length ? '#EEEDFE' : '#E6F1FB';
+    // Kart başlığı
+    h+='<div class="card" style="cursor:'+(qs.length?'pointer':'default')+'" onclick="'+(qs.length?'toggleWs('+i+')':'')+(qs.length?'"':'"')+'">'+
+      '<div style="display:flex;align-items:center;gap:12px">'+
+        '<div style="width:40px;height:40px;border-radius:10px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+icon+'</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:14px;font-weight:700;color:#1a2535">'+esc(w.title)+'</div>'+
+          '<div style="font-size:11px;color:#7a9199;margin-top:2px">'+(w.topicEn?esc(w.topicEn)+' · ':'')+esc(w.level)+(qs.length?' · '+qs.length+' soru':'')+'</div>'+
+        '</div>'+
+        '<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;background:'+lc.bg+';color:'+lc.c+'">'+esc(w.level)+'</span>'+
+        (qs.length?'<span id="ws-arr-'+i+'" style="font-size:16px;color:#b0c4c8;margin-left:4px">›</span>':'')+
+      '</div>';
+    // Sorular (gizli başlar)
+    if(qs.length){
+      h+='<div id="ws-body-'+i+'" style="display:none;margin-top:16px;border-top:1px solid #f0f4f5;padding-top:16px">';
+      qs.forEach(function(q,qi){
+        h+='<div style="margin-bottom:14px;padding:12px 14px;background:#f8fafb;border-radius:10px;border:1px solid #eef1f3">';
+        h+='<div style="display:flex;justify-content:space-between;margin-bottom:6px">';
+        h+='<span style="font-size:10px;font-weight:600;color:#1D9E75;text-transform:uppercase;letter-spacing:.06em">Soru '+(qi+1)+'</span>';
+        h+='<span style="font-size:10px;padding:2px 8px;border-radius:6px;background:'+(q.type==='mc'?'#E6F1FB':'#E1F5EE')+';color:'+(q.type==='mc'?'#0C447C':'#085041')+'">'+(q.type==='mc'?'Çoktan Seçmeli':'Boşluk Doldurma')+'</span>';
+        h+='</div>';
+        h+='<div style="font-size:14px;color:#2d3e50;margin-bottom:8px;line-height:1.5">'+esc(q.text)+'</div>';
+        if(q.type==='mc'){
+          (q.options||[]).forEach(function(opt){
+            h+='<div style="padding:6px 12px;border-radius:8px;font-size:13px;margin-bottom:4px;border:1px solid #dde8ea;color:#2d3e50;background:white" '+
+              'onclick="checkMc(this,\''+escQ(opt)+'\',\''+escQ(q.answer)+'\')">'+esc(opt)+'</div>';
+          });
+        } else {
+          h+='<div style="display:flex;gap:8px;align-items:center">'+
+            '<input type="text" placeholder="Cevabını yaz..." style="flex:1;padding:8px 12px;border:1.5px solid #dde8ea;border-radius:8px;font-size:13px;outline:none" '+
+            'onkeydown="if(event.key===\'Enter\')checkFill(this,\''+escQ(q.answer)+'\')" >'+
+            '<button onclick="checkFill(this.previousSibling,\''+escQ(q.answer)+'\')" style="padding:8px 14px;border-radius:8px;background:#3BB3BD;color:white;border:none;font-size:12px;cursor:pointer">✓</button>'+
+          '</div>';
+        }
+        h+='</div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+  });
+  return h;
+}
+function toggleWs(i){
+  var b=document.getElementById('ws-body-'+i);
+  var a=document.getElementById('ws-arr-'+i);
+  if(!b)return;
+  var open=b.style.display==='block';
+  b.style.display=open?'none':'block';
+  if(a)a.style.transform=open?'':'rotate(90deg)';
+}
+function escQ(s){return s?String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"):''}
+function checkMc(el,opt,answer){
+  var par=el.parentNode;
+  Array.from(par.children).forEach(function(c){
+    c.style.pointerEvents='none';
+    if(c.textContent.trim()===answer){c.style.background='#E1F5EE';c.style.borderColor='#5DCAA5';c.style.color='#085041';}
+    else if(c===el&&opt!==answer){c.style.background='#fef2f2';c.style.borderColor='#f5c0c0';c.style.color='#c05050';}
+  });
+}
+function checkFill(inp,answer){
+  var val=inp.value.trim().toLowerCase();
+  var ok=val===answer.toLowerCase().trim();
+  inp.style.borderColor=ok?'#5DCAA5':'#f5c0c0';
+  inp.style.background=ok?'#E1F5EE':'#fef2f2';
+  inp.readOnly=true;
+  inp.nextSibling.textContent=ok?'✓':'Cevap: '+answer;
+  inp.nextSibling.style.background=ok?'#1D9E75':'#c05050';
 }
 function bSessions(){
   var ses=D.generalSessions||[];
