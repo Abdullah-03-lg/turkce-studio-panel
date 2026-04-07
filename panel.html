@@ -67,7 +67,7 @@ function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
   if(!raw){var p=new URLSearchParams(window.location.search);raw=p.get('data');}
   if(!raw)return;
   try{
-    D=JSON.parse(decodeURIComponent(atob(raw)));
+    D=JSON.parse(decodeURIComponent(escape(atob(raw))));
     var C=['#E1F5EE:#085041','#E6F1FB:#0C447C','#FAEEDA:#633806','#FBEAF0:#72243E'];
     var p=C[D.name.charCodeAt(0)%C.length].split(':');
     var av=document.getElementById('l-av');
