@@ -225,39 +225,39 @@ function bWorksheets(){
   ws.forEach(function(w,i){
     var lc=LVL[w.level]||{bg:'#f4f7f8',c:'#5a7a80'};
     var qs=w.questions||[];
-    var icon = qs.length ? '✦' : '📄';
-    var iconBg = qs.length ? '#EEEDFE' : '#E6F1FB';
-    // Kart başlığı
-    h+='<div class="card" style="cursor:'+(qs.length?'pointer':'default')+'" onclick="'+(qs.length?'toggleWs('+i+')':'')+(qs.length?'"':'"')+'">'+
+    var icon=qs.length?'✦':'📄';
+    var iconBg=qs.length?'#EEEDFE':'#E6F1FB';
+    h+='<div class="card" style="cursor:'+(qs.length?'pointer':'default')+'" onclick="'+(qs.length?'toggleWs('+i+')':'')+'">'+
       '<div style="display:flex;align-items:center;gap:12px">'+
-        '<div style="width:40px;height:40px;border-radius:10px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+icon+'</div>'+
-        '<div style="flex:1">'+
-          '<div style="font-size:14px;font-weight:700;color:#1a2535">'+esc(w.title)+'</div>'+
-          '<div style="font-size:11px;color:#7a9199;margin-top:2px">'+(w.topicEn?esc(w.topicEn)+' · ':'')+esc(w.level)+(qs.length?' · '+qs.length+' soru':'')+'</div>'+
-        '</div>'+
-        '<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;background:'+lc.bg+';color:'+lc.c+'">'+esc(w.level)+'</span>'+
-        (qs.length?'<span id="ws-arr-'+i+'" style="font-size:16px;color:#b0c4c8;margin-left:4px">›</span>':'')+
+      '<div style="width:40px;height:40px;border-radius:10px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+icon+'</div>'+
+      '<div style="flex:1">'+
+      '<div style="font-size:14px;font-weight:700;color:#1a2535">'+esc(w.title)+'</div>'+
+      '<div style="font-size:11px;color:#7a9199;margin-top:2px">'+( w.topicEn?esc(w.topicEn)+' · ':'')+esc(w.level)+(qs.length?' · '+qs.length+' soru':'')+'</div>'+
+      '</div>'+
+      '<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;background:'+lc.bg+';color:'+lc.c+'">'+esc(w.level)+'</span>'+
+      (qs.length?'<span id="ws-arr-'+i+'" style="font-size:16px;color:#b0c4c8;margin-left:4px;transition:transform .2s">›</span>':'')+
       '</div>';
-    // Sorular (gizli başlar)
     if(qs.length){
+      h+='<input type="hidden" id="ws-total-'+i+'" value="'+qs.length+'">';
+      h+='<div id="ws-score-'+i+'" style="display:none;margin-top:12px"></div>';
       h+='<div id="ws-body-'+i+'" onclick="event.stopPropagation()" style="display:none;margin-top:16px;border-top:1px solid #f0f4f5;padding-top:16px">';
       qs.forEach(function(q,qi){
         h+='<div style="margin-bottom:14px;padding:12px 14px;background:#f8fafb;border-radius:10px;border:1px solid #eef1f3">';
         h+='<div style="display:flex;justify-content:space-between;margin-bottom:6px">';
         h+='<span style="font-size:10px;font-weight:600;color:#1D9E75;text-transform:uppercase;letter-spacing:.06em">Soru '+(qi+1)+'</span>';
-        h+='<span style="font-size:10px;padding:2px 8px;border-radius:6px;background:'+(q.type==='mc'?'#E6F1FB':'#E1F5EE')+';color:'+(q.type==='mc'?'#0C447C':'#085041')+'">'+(q.type==='mc'?'Çoktan Seçmeli':'Boşluk Doldurma')+'</span>';
+        h+='<span style="font-size:10px;padding:2px 8px;border-radius:6px;background:'+(q.type==='mc'?'#E6F1FB':'#E1F5EE')+';color:'+(q.type==='mc'?'#0C447C':'#085041')+'">'+( q.type==='mc'?'Çoktan Seçmeli':'Boşluk Doldurma')+'</span>';
         h+='</div>';
         h+='<div style="font-size:14px;color:#2d3e50;margin-bottom:8px;line-height:1.5">'+esc(q.text)+'</div>';
         if(q.type==='mc'){
           (q.options||[]).forEach(function(opt){
             h+='<div style="padding:6px 12px;border-radius:8px;font-size:13px;margin-bottom:4px;border:1px solid #dde8ea;color:#2d3e50;background:white;cursor:pointer" '+
-              'onclick="event.stopPropagation();checkMc(this,\''+escQ(opt)+'\',\''+escQ(q.answer)+'\')">'+esc(opt)+'</div>';
+              'onclick="event.stopPropagation();checkMc(this,\''+escQ(opt)+'\',\''+escQ(q.answer)+'\','+i+')">'+ esc(opt)+'</div>';
           });
         } else {
           h+='<div style="display:flex;gap:8px;align-items:center">'+
             '<input type="text" placeholder="Cevabını yaz..." onclick="event.stopPropagation()" style="flex:1;padding:8px 12px;border:1.5px solid #dde8ea;border-radius:8px;font-size:13px;outline:none" '+
-            'onkeydown="event.stopPropagation();if(event.key===\'Enter\')checkFill(this,\''+escQ(q.answer)+'\')" >'+
-            '<button onclick="event.stopPropagation();checkFill(this.previousSibling,\''+escQ(q.answer)+'\')" style="padding:8px 14px;border-radius:8px;background:#3BB3BD;color:white;border:none;font-size:12px;cursor:pointer">✓</button>'+
+            'onkeydown="event.stopPropagation();if(event.key===\'Enter\')checkFill(this,\''+escQ(q.answer)+'\','+i+')" >'+
+            '<button onclick="event.stopPropagation();checkFill(this.previousSibling,\''+escQ(q.answer)+'\','+i+')" style="padding:8px 14px;border-radius:8px;background:#3BB3BD;color:white;border:none;font-size:12px;cursor:pointer">✓</button>'+
           '</div>';
         }
         h+='</div>';
@@ -268,24 +268,37 @@ function bWorksheets(){
   });
   return h;
 }
+
 function toggleWs(i){
   var b=document.getElementById('ws-body-'+i);
   var a=document.getElementById('ws-arr-'+i);
   if(!b)return;
+  // Kilitliyse sadece skoru göster/gizle
   var open=b.style.display==='block';
   b.style.display=open?'none':'block';
   if(a)a.style.transform=open?'':'rotate(90deg)';
 }
 function escQ(s){return s?String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"):''}
-function checkMc(el,opt,answer){
+
+// Her ödev için state
+var wsState={};
+
+function checkMc(el,opt,answer,wsIdx){
+  if(wsState[wsIdx]&&wsState[wsIdx].done)return;
   var par=el.parentNode;
   Array.from(par.children).forEach(function(c){
     c.style.pointerEvents='none';
     if(c.textContent.trim()===answer){c.style.background='#E1F5EE';c.style.borderColor='#5DCAA5';c.style.color='#085041';}
     else if(c===el&&opt!==answer){c.style.background='#fef2f2';c.style.borderColor='#f5c0c0';c.style.color='#c05050';}
   });
+  if(!wsState[wsIdx])wsState[wsIdx]={cor:0,tot:0,answered:0,total:0};
+  wsState[wsIdx].answered=(wsState[wsIdx].answered||0)+1;
+  if(opt===answer)wsState[wsIdx].cor=(wsState[wsIdx].cor||0)+1;
+  checkWsComplete(wsIdx);
 }
-function checkFill(inp,answer){
+
+function checkFill(inp,answer,wsIdx){
+  if(wsState[wsIdx]&&wsState[wsIdx].done)return;
   var val=inp.value.trim().toLowerCase();
   var ok=val===answer.toLowerCase().trim();
   inp.style.borderColor=ok?'#5DCAA5':'#f5c0c0';
@@ -293,6 +306,43 @@ function checkFill(inp,answer){
   inp.readOnly=true;
   inp.nextSibling.textContent=ok?'✓':'Cevap: '+answer;
   inp.nextSibling.style.background=ok?'#1D9E75':'#c05050';
+  if(!wsState[wsIdx])wsState[wsIdx]={cor:0,tot:0,answered:0,total:0};
+  wsState[wsIdx].answered=(wsState[wsIdx].answered||0)+1;
+  if(ok)wsState[wsIdx].cor=(wsState[wsIdx].cor||0)+1;
+  checkWsComplete(wsIdx);
+}
+
+function checkWsComplete(wsIdx){
+  var st=wsState[wsIdx];
+  var total=parseInt(document.getElementById('ws-total-'+wsIdx)||0);
+  var totalEl=document.getElementById('ws-total-'+wsIdx);
+  if(!totalEl)return;
+  total=parseInt(totalEl.value||0);
+  if(st.answered>=total){
+    st.done=true;
+    showWsScore(wsIdx,st.cor,total);
+  }
+}
+
+function showWsScore(wsIdx,cor,tot){
+  var pct=tot>0?Math.round((cor/tot)*100):0;
+  var passed=pct>=70;
+  var scoreDiv=document.getElementById('ws-score-'+wsIdx);
+  if(scoreDiv){
+    scoreDiv.style.display='block';
+    scoreDiv.innerHTML='<div style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:'+(passed?'#E1F5EE':'#fef2f2')+';border-radius:12px;border:1px solid '+(passed?'#5DCAA5':'#f5c0c0')+';margin-top:12px">'
+      +'<div style="font-size:36px;font-weight:800;color:'+(passed?'#085041':'#c05050')+'">'+pct+'%</div>'
+      +'<div><div style="font-size:15px;font-weight:700;color:'+(passed?'#085041':'#c05050')+'">'+(passed?'🎉 Tebrikler!':'📚 Tekrar dene!')+'</div>'
+      +'<div style="font-size:12px;color:#7a9199;margin-top:2px">'+cor+'/'+tot+' doğru · '+new Date().toLocaleDateString(\'tr-TR\')+'</div></div>'
+      +'</div>';
+  }
+  // Tüm inputları ve MC seçenekleri kilitle
+  var body=document.getElementById('ws-body-'+wsIdx);
+  if(body){
+    body.querySelectorAll('input[type=text]').forEach(function(el){el.readOnly=true;el.style.pointerEvents='none';});
+    body.querySelectorAll('button').forEach(function(el){el.style.pointerEvents='none';el.style.opacity='.4';});
+    body.querySelectorAll('div[onclick]').forEach(function(el){el.style.pointerEvents='none';});
+  }
 }
 function bSessions(){
   var ses=D.generalSessions||[];
