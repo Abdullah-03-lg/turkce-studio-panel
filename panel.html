@@ -398,19 +398,10 @@ function bMaterials(type){
 }
 
 function bSessions(){
-  var speaking=(D.speakingSessions||[]).map(function(s){return {date:s.date,topic:s.topic,lessonType:s.lessonType||'Konuşma',notes:s.notes||'',progress:s.progress||3};});
-  var general=(D.generalSessions||[]).map(function(s){return {date:s.date,topic:s.topic,lessonType:s.lessonType||'Ders',notes:s.notes||'',progress:s.progress||3};});
-  // Her iki listeyi ayrı ayrı tarihe göre sırala (zaten reverse sıralı geliyor)
-  // Sonra zip et: aynı indexteki elemanları karşılaştırarak birleştir
-  var all=[];
-  var si=0,gi=0;
-  while(si<speaking.length||gi<general.length){
-    var s=speaking[si],g=general[gi];
-    if(!s){all.push(g);gi++;}
-    else if(!g){all.push(s);si++;}
-    else if(new Date(g.date||0)>new Date(s.date||0)){all.push(g);gi++;}
-    else{all.push(s);si++;}
-  }
+  var speaking=(D.speakingSessions||[]).map(function(s){return {date:s.date,savedAt:s.savedAt||s.date,topic:s.topic,lessonType:s.lessonType||'Konuşma',notes:s.notes||'',progress:s.progress||3};});
+  var general=(D.generalSessions||[]).map(function(s){return {date:s.date,savedAt:s.savedAt||s.date,topic:s.topic,lessonType:s.lessonType||'Ders',notes:s.notes||'',progress:s.progress||3};});
+  var all=speaking.concat(general);
+  all.sort(function(a,b){return new Date(b.savedAt||b.date||0)-new Date(a.savedAt||a.date||0);});
   var h='<div class="card"><div style="font-size:16px;font-weight:700;color:#1a2535;margin-bottom:14px">📅 Tüm Dersler <span style="font-size:12px;font-weight:400;color:#7a9199">'+all.length+' ders</span></div>';
   if(!all.length){h+='<div style="text-align:center;padding:16px;color:#9ab0b5">Henüz ders kaydı yok</div>';}
   else{all.forEach(function(s){var dots=[1,2,3,4,5].map(function(i){return '<div style="width:7px;height:7px;border-radius:50%;background:'+(i<=s.progress?'#3BB3BD':'#dde8ea')+'"></div>';}).join('');h+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f0f4f5"><div style="width:80px;flex-shrink:0"><div style="font-size:11px;color:#7a9199">'+esc(s.date)+'</div><div style="display:flex;gap:2px;margin-top:4px">'+dots+'</div></div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:#1a2535;margin-bottom:3px">'+esc(s.topic)+(s.lessonType?'<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:#f4f7f8;color:#5a7a80;margin-left:6px">'+esc(s.lessonType)+'</span>':'')+'</div>'+(s.notes?'<div style="font-size:12px;color:#7a9199;line-height:1.5">'+esc(s.notes)+'</div>':'')+'</div></div>';});}
