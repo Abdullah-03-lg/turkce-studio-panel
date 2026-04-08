@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Türkçe Studio — Öğrenci Paneli</title>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f7f8;color:#2d3e50;min-height:100vh}
@@ -71,7 +72,8 @@ function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
   if(!raw){var p=new URLSearchParams(window.location.search);raw=p.get('data');}
   if(!raw)return;
   try{
-    D=JSON.parse(decodeURIComponent(escape(atob(raw))));
+    var decoded=LZString.decompressFromEncodedURIComponent(raw);
+    D=decoded?JSON.parse(decoded):JSON.parse(decodeURIComponent(escape(atob(raw))));
     var C=['#E1F5EE:#085041','#E6F1FB:#0C447C','#FAEEDA:#633806','#FBEAF0:#72243E'];
     var p=C[D.name.charCodeAt(0)%C.length].split(':');
     var av=document.getElementById('l-av');
